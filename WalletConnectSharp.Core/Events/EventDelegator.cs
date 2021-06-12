@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using WalletConnectSharp.Core.Events.Request;
 using WalletConnectSharp.Core.Events.Response;
 using WalletConnectSharp.Core.Models;
+using UnityEngine;
 
 namespace WalletConnectSharp.Core.Events
 {
@@ -107,10 +108,6 @@ namespace WalletConnectSharp.Core.Events
             if (Listeners.ContainsKey(topic))
             {
                 var providerList = Listeners[topic];
-
-                #IF UNITY_EDITOR
-                    Debug.Log("Adding listener to EventProvider list. New count: " + (listProvider.Count + 1));
-                #endif    
 
                 Console.WriteLine("Triggering " + providerList.Count + " EventProviders for topic " + topic);
                 

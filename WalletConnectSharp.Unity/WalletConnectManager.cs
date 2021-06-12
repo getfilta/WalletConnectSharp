@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.Events;
@@ -63,6 +64,11 @@ namespace WalletConnectSharp.Unity
         public void WaitForWalletConnection(UnityAction<WCSessionData> onConnected)
         {
             StartCoroutine(ConnectAsync(onConnected));
+        }
+
+        public async Task<WCSessionData> ConnectToWallet()
+        {
+            return await Provider.Connect();
         }
 
         private IEnumerator ConnectAsync(UnityAction<WCSessionData> onConnected)

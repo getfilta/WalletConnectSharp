@@ -12,7 +12,7 @@ using Websocket.Client.Models;
 
 namespace WalletConnectSharp.Desktop.Network
 {
-    public class WebsocketTransport : ITransport
+    public class WebsocketTransport : ITransport, IObserver<ResponseMessage>, IObserver<DisconnectionInfo>
     {
         private WebsocketClient client;
         private EventDelegator _eventDelegator;
@@ -41,8 +41,8 @@ namespace WalletConnectSharp.Desktop.Network
             
             client = new WebsocketClient(new Uri(url));
             
-            client.MessageReceived.Subscribe(OnMessageReceived);
-            client.DisconnectionHappened.Subscribe(delegate(DisconnectionInfo info) { client.Reconnect(); });
+            client.MessageReceived.Subscribe(this);
+            client.DisconnectionHappened.Subscribe(this);
 
             //TODO Log this
             /*client.ReconnectionHappened.Subscribe(delegate(ReconnectionInfo info)
@@ -51,25 +51,6 @@ namespace WalletConnectSharp.Desktop.Network
             });*/
 
             await client.Start();
-        }
-        
-        private async void OnMessageReceived(ResponseMessage responseMessage)
-        {
-            var json = responseMessage.Text;
-
-            var msg = JsonConvert.DeserializeObject<NetworkMessage>(json);
-
-            await SendMessage(new NetworkMessage()
-            {
-                Payload = "",
-                Type = "ack",
-                Silent = true,
-                Topic = msg.Topic
-            });
-            
-            
-            if (this.MessageReceived != null)
-                MessageReceived(this, new MessageReceivedEventArgs(msg, this));
         }
 
         public async Task Close()
@@ -107,6 +88,41 @@ namespace WalletConnectSharp.Desktop.Network
             await Subscribe(topic);
 
             _eventDelegator.ListenFor(topic, callback);
+        }
+
+        public void OnCompleted()
+        {
+        }
+
+        public void OnError(Exception error)
+        {
+            throw error;
+        }
+
+        public async void OnNext(ResponseMessage responseMessage)
+        {
+            var json = responseMessage.Text;
+
+            var msg = JsonConvert.DeserializeObject<NetworkMessage>(json);
+
+            await SendMessage(new NetworkMessage()
+            {
+                Payload = "",
+                Type = "ack",
+                Silent = true,
+                Topic = msg.Topic
+            });
+
+
+            if (this.MessageReceived != null)
+            {
+                MessageReceived(this, new MessageReceivedEventArgs(msg, this));
+            }
+        }
+
+        public void OnNext(DisconnectionInfo value)
+        {
+            client.Reconnect();
         }
     }
 }

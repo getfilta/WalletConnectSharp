@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using WalletConnectSharp.Core;
 using WalletConnectSharp.Core.Events;
 using WalletConnectSharp.Core.Models;
@@ -18,3 +19,4 @@ namespace WalletConnectSharp.Desktop
         }
     }
 }
+#endif
